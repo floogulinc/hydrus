@@ -27,7 +27,7 @@ LOCAL_BOORU_STRING_PARAMS = set()
 LOCAL_BOORU_JSON_PARAMS = set()
 
 CLIENT_API_INT_PARAMS = { 'file_id' }
-CLIENT_API_BYTE_PARAMS = { 'hash' }
+CLIENT_API_BYTE_PARAMS = { 'hash', 'apikey' }
 CLIENT_API_STRING_PARAMS = { 'name', 'url' }
 CLIENT_API_JSON_PARAMS = { 'basic_permissions', 'system_inbox', 'system_archive', 'tags', 'file_ids', 'hashes', 'only_return_identifiers' }
 
@@ -512,23 +512,29 @@ class HydrusResourceClientAPI( HydrusServerResources.HydrusResource ):
     
     def _ParseClientAPIAccessKey( self, request ):
         
-        if not request.requestHeaders.hasHeader( 'Hydrus-Client-API-Access-Key' ):
+        parsed_request_args = ParseClientAPIGETArgs( request.args )
+
+        if request.requestHeaders.hasHeader( 'Hydrus-Client-API-Access-Key' ):
+
+            access_key_texts = request.requestHeaders.getRawHeaders( 'Hydrus-Client-API-Access-Key' )
+
+            access_key_text = access_key_texts[0]
+
+            try:
             
+                access_key = bytes.fromhex( access_key_text )
+            
+            except:
+                
+                raise Exception( 'Problem parsing api access key!' )
+
+        elif 'apikey' in parsed_request_args:
+
+            access_key = parsed_request_args[ 'apikey' ]
+
+        else:
+
             raise HydrusExceptions.MissingCredentialsException( 'No Hydrus-Client-API-Access-Key header!' )
-            
-        
-        access_key_texts = request.requestHeaders.getRawHeaders( 'Hydrus-Client-API-Access-Key' )
-        
-        access_key_text = access_key_texts[0]
-        
-        try:
-            
-            access_key = bytes.fromhex( access_key_text )
-            
-        except:
-            
-            raise Exception( 'Problem parsing api access key!' )
-            
         
         return access_key
         
