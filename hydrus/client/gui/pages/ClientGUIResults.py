@@ -4741,10 +4741,8 @@ class Thumbnail( Selectable ):
         
         painter.setRenderHint( QG.QPainter.TextAntialiasing, True ) # is true already in tests, is supposed to be 'the way' to fix the ugly text issue
         painter.setRenderHint( QG.QPainter.Antialiasing, True ) # seems to do nothing, it only affects primitives?
-        
-        if device_pixel_ratio > 1.0:
             
-            painter.setRenderHint( QG.QPainter.SmoothPixmapTransform, True ) # makes the thumb scale up prettily and expensively when we need it
+        painter.setRenderHint( QG.QPainter.SmoothPixmapTransform, True ) # makes the thumb scale up prettily and expensively when we need it
             
         
         new_options = HG.client_controller.new_options
