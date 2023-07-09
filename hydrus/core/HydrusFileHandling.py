@@ -5,6 +5,7 @@ import struct
 from hydrus.core import HydrusAudioHandling
 from hydrus.core import HydrusClipHandling
 from hydrus.core import HydrusKritaHandling
+from hydrus.core import HydrusXCFHandling
 from hydrus.core import HydrusSVGHandling
 from hydrus.core import HydrusConstants as HC
 from hydrus.core import HydrusData
@@ -181,6 +182,22 @@ def GenerateThumbnailBytes( path, target_resolution, mime, duration, num_frames,
             HydrusTemp.CleanUpTempPath( os_file_handle, temp_path )
         
         
+    elif mime == HC.APPLICATION_XCF: 
+
+        try:
+            
+            thumbnail_bytes = HydrusXCFHandling.GenerateThumbnailBytesFromXCFPath( path, target_resolution, clip_rect = clip_rect )
+            
+        except Exception as e:
+            
+            HydrusData.Print( 'Problem generating thumbnail for "{}":'.format( path ) )
+            HydrusData.PrintException( e )
+            
+            thumb_path = os.path.join( HC.STATIC_DIR, 'xcf.png' )
+            
+            thumbnail_bytes = HydrusImageHandling.GenerateThumbnailBytesFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+
+
     elif mime == HC.IMAGE_SVG: 
 
         try:
@@ -361,6 +378,10 @@ def GetFileInfo( path, mime = None, ok_to_look_for_hydrus_updates = False ):
     elif mime == HC.APPLICATION_KRITA:
         
         ( width, height ) = HydrusKritaHandling.GetKraProperties( path )
+
+    elif mime == HC.APPLICATION_XCF:
+        
+        ( width, height ) = HydrusXCFHandling.GetXCFResolution( path )
 
     elif mime == HC.IMAGE_SVG:
 
