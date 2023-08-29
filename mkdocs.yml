@@ -67,8 +67,10 @@ nav:
     - privacy.md
     - contact.md
     - support.md
-    - changelog.md
+    # - changelog.md
     - about_docs.md
+  - Changelog:
+      - releases/index.md
 
 theme:
   name: material
@@ -158,3 +160,10 @@ markdown_extensions:
       custom_checkbox: true
   - pymdownx.tilde
   - pymdownx.snippets
+
+plugins:
+  - blog:
+      blog_dir: releases
+      post_url_format: "{file}"
+      categories: false
+      post_readtime: false
