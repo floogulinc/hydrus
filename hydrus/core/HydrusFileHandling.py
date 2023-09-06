@@ -111,7 +111,10 @@ headers_and_mime.extend( [
     ( ( ( 0, b'wvpk' ), ), HC.AUDIO_WAVPACK ),
     ( ( ( 8, b'AVI ' ), ), HC.VIDEO_AVI ),
     ( ( ( 0, b'\x30\x26\xB2\x75\x8E\x66\xCF\x11\xA6\xD9\x00\xAA\x00\x62\xCE\x6C' ), ), HC.UNDETERMINED_WM ),
-    ( ( ( 0, b'\x4D\x5A\x90\x00\x03', ), ), HC.APPLICATION_WINDOWS_EXE )
+    ( ( ( 0, b'\x4D\x5A\x90\x00\x03', ), ), HC.APPLICATION_WINDOWS_EXE ),
+    ( ( ( 0, b'BLENDER', ), ), HC.APPLICATION_BLENDER ),
+    ( ( ( 0, b'glTF', ), ), HC.MODEL_GLTF_BINARY ),
+    ( ( ( 0, b'Kaydara FBX Binary  \x00', ), ), HC.MODEL_FBX )
 ] )
 
 def GenerateThumbnailBytes( path, target_resolution, mime, duration, num_frames, clip_rect = None, percentage_in = 35 ):

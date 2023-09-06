@@ -44,6 +44,7 @@ class OptionsPanelMimesTree( OptionsPanel ):
         general_mime_types.append( HC.GENERAL_AUDIO )
         general_mime_types.append( HC.GENERAL_APPLICATION )
         general_mime_types.append( HC.GENERAL_IMAGE_PROJECT )
+        general_mime_types.append( HC.GENERAL_3D )
         general_mime_types.append( HC.GENERAL_APPLICATION_ARCHIVE )
         
         self._my_tree = QP.TreeWidgetWithInheritedCheckState( self )

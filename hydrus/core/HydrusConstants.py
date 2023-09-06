@@ -730,6 +730,12 @@ UNDETERMINED_GIF = 67
 IMAGE_GIF = 68
 APPLICATION_PROCREATE = 69
 IMAGE_QOI = 70
+GENERAL_3D = 71
+MODEL_GLTF_BINARY = 72
+MODEL_GLTF_JSON = 73
+MODEL_FBX = 74
+MODEL_OBJ = 75
+APPLICATION_BLENDER = 76
 APPLICATION_OCTET_STREAM = 100
 APPLICATION_UNKNOWN = 101
 
@@ -740,7 +746,8 @@ GENERAL_FILETYPES = {
     GENERAL_VIDEO,
     GENERAL_ANIMATION,
     GENERAL_APPLICATION_ARCHIVE,
-    GENERAL_IMAGE_PROJECT
+    GENERAL_IMAGE_PROJECT,
+    GENERAL_3D
 }
 
 SEARCHABLE_MIMES = {
@@ -792,7 +799,12 @@ SEARCHABLE_MIMES = {
     VIDEO_WMV,
     AUDIO_MKV,
     AUDIO_MP4,
-    AUDIO_WAVPACK
+    AUDIO_WAVPACK,
+    MODEL_GLTF_BINARY,
+    MODEL_GLTF_JSON,
+    MODEL_FBX,
+    MODEL_OBJ,
+    APPLICATION_BLENDER
 }
 
 STORABLE_MIMES = set( SEARCHABLE_MIMES ).union( { APPLICATION_HYDRUS_UPDATE_CONTENT, APPLICATION_HYDRUS_UPDATE_DEFINITIONS } )
@@ -882,6 +894,14 @@ ARCHIVES = [
     APPLICATION_ZIP
 ]
 
+FILES_3D = [
+    MODEL_GLTF_BINARY,
+    MODEL_GLTF_JSON,
+    MODEL_FBX,
+    MODEL_OBJ,
+    APPLICATION_BLENDER
+]
+
 VIEWABLE_IMAGE_PROJECT_FILES = { APPLICATION_PSD }
 
 general_mimetypes_to_mime_groups = {
@@ -891,7 +911,8 @@ general_mimetypes_to_mime_groups = {
     GENERAL_AUDIO : AUDIO,
     GENERAL_IMAGE : IMAGES,
     GENERAL_VIDEO : VIDEO,
-    GENERAL_ANIMATION : ANIMATIONS
+    GENERAL_ANIMATION : ANIMATIONS,
+    GENERAL_3D : FILES_3D
 }
 
 mimes_to_general_mimetypes = {}
@@ -1002,6 +1023,10 @@ mime_enum_lookup = {
     'application/vnd.rn-realmedia' : VIDEO_REALMEDIA,
     'video/webm' : VIDEO_WEBM,
     'video' : VIDEO,
+    'model/gltf-binary': MODEL_GLTF_BINARY,
+    'model/gltf+json': MODEL_GLTF_JSON,
+    'model/obj': MODEL_OBJ,
+    'application/x-blender': APPLICATION_BLENDER,
     'unknown filetype' : APPLICATION_UNKNOWN
 }
 
@@ -1067,6 +1092,11 @@ mime_string_lookup = {
     VIDEO_OGV : 'ogv',
     VIDEO_REALMEDIA : 'realvideo',
     VIDEO_WEBM : 'webm',
+    MODEL_GLTF_BINARY: 'glb',
+    MODEL_GLTF_JSON: 'gltf',
+    MODEL_FBX: 'fbx',
+    MODEL_OBJ: 'obj',
+    APPLICATION_BLENDER: 'blender',
     UNDETERMINED_WM : 'wma or wmv',
     UNDETERMINED_MP4 : 'mp4 with or without audio',
     UNDETERMINED_PNG : 'png or apng',
@@ -1078,6 +1108,7 @@ mime_string_lookup = {
     GENERAL_IMAGE : 'image',
     GENERAL_VIDEO : 'video',
     GENERAL_ANIMATION : 'animation',
+    GENERAL_3D : '3D file'
 }
 
 string_enum_lookup = { s : enum for ( enum, s ) in mime_string_lookup.items() }
@@ -1144,6 +1175,11 @@ mime_mimetype_string_lookup = {
     VIDEO_OGV : 'video/ogg',
     VIDEO_REALMEDIA : 'video/vnd.rn-realvideo',
     VIDEO_WEBM : 'video/webm',
+    MODEL_GLTF_BINARY: 'model/gltf-binary',
+    MODEL_GLTF_JSON: 'model/gltf+json',
+    MODEL_FBX: 'application/octet-stream',
+    MODEL_OBJ: 'model/obj',
+    APPLICATION_BLENDER: 'application/x-blender',
     APPLICATION_UNKNOWN : 'unknown filetype',
     GENERAL_APPLICATION : 'application',
     GENERAL_APPLICATION_ARCHIVE : 'archive',
@@ -1152,6 +1188,7 @@ mime_mimetype_string_lookup = {
     GENERAL_IMAGE : 'image',
     GENERAL_VIDEO : 'video',
     GENERAL_ANIMATION : 'animation',
+    GENERAL_3D: '3d file'
 }
 
 mime_mimetype_string_lookup[ UNDETERMINED_WM ] = '{} or {}'.format( mime_mimetype_string_lookup[ AUDIO_WMA ], mime_mimetype_string_lookup[ VIDEO_WMV ] )
@@ -1219,6 +1256,11 @@ mime_ext_lookup = {
     VIDEO_OGV : '.ogv',
     VIDEO_REALMEDIA : '.rm',
     VIDEO_WEBM : '.webm',
+    MODEL_GLTF_BINARY: '.glb',
+    MODEL_GLTF_JSON: '.gltf',
+    MODEL_FBX: '.fbx',
+    MODEL_OBJ: '.obj',
+    APPLICATION_BLENDER: '.blend',
     APPLICATION_UNKNOWN : ''
 }
 
