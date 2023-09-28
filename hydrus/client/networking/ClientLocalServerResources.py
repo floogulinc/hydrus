@@ -950,6 +950,64 @@ def ConvertTagListToPredicates( request, tag_list, do_permission_check = True, e
     
     return predicates
     
+def GetHashIDsFromSearchRequest(request: HydrusServerRequest.HydrusRequest) -> list[int]:
+
+    location_context = ParseLocationContext( request, ClientLocation.LocationContext.STATICCreateSimple( CC.COMBINED_LOCAL_MEDIA_SERVICE_KEY ) )
+        
+    tag_service_key = ParseTagServiceKey( request )
+    
+    if tag_service_key == CC.COMBINED_TAG_SERVICE_KEY and location_context.IsAllKnownFiles():
+        
+        raise HydrusExceptions.BadRequestException( 'Sorry, search for all known tags over all known files is not supported!' )
+        
+    
+    tag_context = ClientSearch.TagContext( service_key = tag_service_key )
+    predicates = ParseClientAPISearchPredicates( request )
+    
+    if len( predicates ) == 0:
+        
+        hash_ids = []
+        
+    else:
+        
+        file_search_context = ClientSearch.FileSearchContext( location_context = location_context, tag_context = tag_context, predicates = predicates )
+        
+        file_sort_type = CC.SORT_FILES_BY_IMPORT_TIME
+        
+        if 'file_sort_type' in request.parsed_request_args:
+            
+            file_sort_type = request.parsed_request_args[ 'file_sort_type' ]
+            
+        
+        if file_sort_type not in CC.SYSTEM_SORT_TYPES:
+            
+            raise HydrusExceptions.BadRequestException( 'Sorry, did not understand that sort type!' )
+            
+        
+        file_sort_asc = False
+        
+        if 'file_sort_asc' in request.parsed_request_args:
+            
+            file_sort_asc = request.parsed_request_args.GetValue( 'file_sort_asc', bool )
+            
+        
+        sort_order = CC.SORT_ASC if file_sort_asc else CC.SORT_DESC
+        
+        # newest first
+        sort_by = ClientMedia.MediaSort( sort_type = ( 'system', file_sort_type ), sort_order = sort_order )
+            
+        job_key = ClientThreading.JobKey( cancellable = True )
+        
+        request.disconnect_callables.append( job_key.Cancel )
+        
+        hash_ids = HG.client_controller.Read( 'file_query_ids', file_search_context, job_key = job_key, sort_by = sort_by, apply_implicit_limit = False )
+        
+    
+    request.client_api_permissions.SetLastSearchResults( hash_ids )
+
+    return hash_ids
+
+
 class HydrusResourceBooru( HydrusServerResources.HydrusResource ):
     
     def _callbackParseGETArgs( self, request: HydrusServerRequest.HydrusRequest ):
@@ -2672,71 +2730,20 @@ class HydrusResourceClientAPIRestrictedGetFilesSearchFiles( HydrusResourceClient
     
     def _threadDoGETJob( self, request: HydrusServerRequest.HydrusRequest ):
         
-        location_context = ParseLocationContext( request, ClientLocation.LocationContext.STATICCreateSimple( CC.COMBINED_LOCAL_MEDIA_SERVICE_KEY ) )
-        
-        tag_service_key = ParseTagServiceKey( request )
-        
-        if tag_service_key == CC.COMBINED_TAG_SERVICE_KEY and location_context.IsAllKnownFiles():
-            
-            raise HydrusExceptions.BadRequestException( 'Sorry, search for all known tags over all known files is not supported!' )
-            
-        
-        tag_context = ClientSearch.TagContext( service_key = tag_service_key )
-        predicates = ParseClientAPISearchPredicates( request )
-        
         return_hashes = False
         return_file_ids = True
-        
-        if len( predicates ) == 0:
             
-            hash_ids = []
+        if 'return_hashes' in request.parsed_request_args:
             
-        else:
-            
-            file_search_context = ClientSearch.FileSearchContext( location_context = location_context, tag_context = tag_context, predicates = predicates )
-            
-            file_sort_type = CC.SORT_FILES_BY_IMPORT_TIME
-            
-            if 'file_sort_type' in request.parsed_request_args:
-                
-                file_sort_type = request.parsed_request_args[ 'file_sort_type' ]
-                
-            
-            if file_sort_type not in CC.SYSTEM_SORT_TYPES:
-                
-                raise HydrusExceptions.BadRequestException( 'Sorry, did not understand that sort type!' )
-                
-            
-            file_sort_asc = False
-            
-            if 'file_sort_asc' in request.parsed_request_args:
-                
-                file_sort_asc = request.parsed_request_args.GetValue( 'file_sort_asc', bool )
-                
-            
-            sort_order = CC.SORT_ASC if file_sort_asc else CC.SORT_DESC
-            
-            # newest first
-            sort_by = ClientMedia.MediaSort( sort_type = ( 'system', file_sort_type ), sort_order = sort_order )
-            
-            if 'return_hashes' in request.parsed_request_args:
-                
-                return_hashes = request.parsed_request_args.GetValue( 'return_hashes', bool )
-                
-            
-            if 'return_file_ids' in request.parsed_request_args:
-                
-                return_file_ids = request.parsed_request_args.GetValue( 'return_file_ids', bool )
-                
-            
-            job_key = ClientThreading.JobKey( cancellable = True )
-            
-            request.disconnect_callables.append( job_key.Cancel )
-            
-            hash_ids = HG.client_controller.Read( 'file_query_ids', file_search_context, job_key = job_key, sort_by = sort_by, apply_implicit_limit = False )
+            return_hashes = request.parsed_request_args.GetValue( 'return_hashes', bool )
             
         
-        request.client_api_permissions.SetLastSearchResults( hash_ids )
+        if 'return_file_ids' in request.parsed_request_args:
+            
+            return_file_ids = request.parsed_request_args.GetValue( 'return_file_ids', bool )
+                
+            
+        hash_ids = GetHashIDsFromSearchRequest(request)
         
         body_dict = {}
         
@@ -3301,6 +3308,53 @@ class HydrusResourceClientAPIRestrictedGetFilesFileMetadata( HydrusResourceClien
         return response_context
         
     
+class HydrusResourceClientAPIRestrictedGetFilesSearchFilesWithMetadata( HydrusResourceClientAPIRestrictedGetFiles ):
+    
+    def _threadDoGETJob( self, request: HydrusServerRequest.HydrusRequest ):
+        
+        hash_ids = GetHashIDsFromSearchRequest(request)
+
+        include_blurhash = request.parsed_request_args.GetValue( 'include_blurhash', bool, default_value = False )
+
+        file_info_managers = HG.client_controller.Read( 'file_info_managers_from_ids', hash_ids, sorted = True, blurhash = include_blurhash )
+
+        metadata = []
+
+        for file_info_manager in file_info_managers:
+
+            metadata_row = {
+                'file_id' : file_info_manager.hash_id,
+                'hash' : file_info_manager.hash.hex(),
+                'size' : file_info_manager.size,
+                'mime' : HC.mime_mimetype_string_lookup[ file_info_manager.mime ],
+                'filetype_human' : HC.mime_string_lookup[ file_info_manager.mime ],
+                'filetype_enum' : file_info_manager.mime,
+                'ext' : HC.mime_ext_lookup[ file_info_manager.mime ],
+                'width' : file_info_manager.width,
+                'height' : file_info_manager.height,
+                'duration' : file_info_manager.duration,
+                'num_frames' : file_info_manager.num_frames,
+                'num_words' : file_info_manager.num_words,
+                'has_audio' : file_info_manager.has_audio
+            }
+
+            if include_blurhash:
+                
+                metadata_row[ 'blurhash' ] = file_info_manager.blurhash
+
+            metadata.append( metadata_row )
+
+        
+        body_dict = {
+            'metadata' : metadata
+        }
+        
+        mime = request.preferred_mime
+        body = Dumps( body_dict, mime )
+        
+        response_context = HydrusServerResources.ResponseContext( 200, mime = mime, body = body )
+        
+        return response_context
 
 class HydrusResourceClientAPIRestrictedGetFilesGetThumbnail( HydrusResourceClientAPIRestrictedGetFiles ):
     
