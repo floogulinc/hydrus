@@ -2995,7 +2995,7 @@ class HydrusResourceClientAPIRestrictedGetFilesFileMetadata( HydrusResourceClien
             
         elif only_return_basic_information:
             
-            file_info_managers = HG.client_controller.Read( 'file_info_managers_from_ids', hash_ids )
+            file_info_managers = HG.client_controller.Read( 'file_info_managers_from_ids', hash_ids, blurhash = include_blurhash )
             
             hashes_to_file_info_managers = { file_info_manager.hash : file_info_manager for file_info_manager in file_info_managers }
             

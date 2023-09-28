@@ -3131,7 +3131,7 @@ class DB( HydrusDB.HydrusDB ):
         return file_history
         
     
-    def _GetFileInfoManagers( self, hash_ids: typing.Collection[ int ], sorted = False ) -> typing.List[ ClientMediaManagers.FileInfoManager ]:
+    def _GetFileInfoManagers( self, hash_ids: typing.Collection[ int ], sorted = False, blurhash = False ) -> typing.List[ ClientMediaManagers.FileInfoManager ]:
         
         ( cached_media_results, missing_hash_ids ) = self._weakref_media_result_cache.GetMediaResultsAndMissing( hash_ids )
         
@@ -3146,7 +3146,9 @@ class DB( HydrusDB.HydrusDB ):
                 # temp hashes to metadata
                 hash_ids_to_info = { hash_id : ClientMediaManagers.FileInfoManager( hash_id, missing_hash_ids_to_hashes[ hash_id ], size, mime, width, height, duration, num_frames, has_audio, num_words ) for ( hash_id, size, mime, width, height, duration, num_frames, has_audio, num_words ) in self._Execute( 'SELECT * FROM {} CROSS JOIN files_info USING ( hash_id );'.format( temp_table_name ) ) }
                 
-                hash_ids_to_blurhashes = self.modules_files_metadata_basic.GetHashIdsToBlurhashes( temp_table_name )
+                if blurhash:
+
+                    hash_ids_to_blurhashes = self.modules_files_metadata_basic.GetHashIdsToBlurhashes( temp_table_name )
                 
             
             # build it
@@ -3163,8 +3165,9 @@ class DB( HydrusDB.HydrusDB ):
                     
                     file_info_manager = ClientMediaManagers.FileInfoManager( hash_id, hash )
                     
-                
-                file_info_manager.blurhash = hash_ids_to_blurhashes.get( hash_id, None )
+                if blurhash:
+
+                    file_info_manager.blurhash = hash_ids_to_blurhashes.get( hash_id, None )
                 
                 file_info_managers.append( file_info_manager )
                 
