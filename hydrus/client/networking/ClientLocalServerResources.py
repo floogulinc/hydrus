@@ -3046,11 +3046,20 @@ class HydrusResourceClientAPIRestrictedGetFilesFileMetadata( HydrusResourceClien
                         'ext' : HC.mime_ext_lookup[ file_info_manager.mime ],
                         'width' : file_info_manager.width,
                         'height' : file_info_manager.height,
-                        'duration' : file_info_manager.duration,
-                        'num_frames' : file_info_manager.num_frames,
-                        'num_words' : file_info_manager.num_words,
                         'has_audio' : file_info_manager.has_audio
                     }
+
+                    if file_info_manager.duration is not None:
+
+                        metadata_row[ 'duration' ] = file_info_manager.duration
+                
+                    if file_info_manager.num_frames is not None:
+                        
+                        metadata_row[ 'num_frames' ] = file_info_manager.num_frames
+
+                    if file_info_manager.num_words is not None:
+                        
+                        metadata_row[ 'num_words' ] = file_info_manager.num_words
 
                     if include_blurhash:
                         
