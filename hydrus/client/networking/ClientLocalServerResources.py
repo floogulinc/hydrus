@@ -66,7 +66,7 @@ LOCAL_BOORU_JSON_BYTE_LIST_PARAMS = set()
 CLIENT_API_INT_PARAMS = { 'file_id', 'file_sort_type', 'potentials_search_type', 'pixel_duplicates', 'max_hamming_distance', 'max_num_pairs' }
 CLIENT_API_BYTE_PARAMS = { 'hash', 'destination_page_key', 'page_key', 'service_key', 'Hydrus-Client-API-Access-Key', 'Hydrus-Client-API-Session-Key', 'file_service_key', 'deleted_file_service_key', 'tag_service_key', 'tag_service_key_1', 'tag_service_key_2', 'rating_service_key' }
 CLIENT_API_STRING_PARAMS = { 'name', 'url', 'domain', 'search', 'service_name', 'reason', 'tag_display_type', 'source_hash_type', 'desired_hash_type' }
-CLIENT_API_JSON_PARAMS = { 'basic_permissions', 'tags', 'tags_1', 'tags_2', 'file_ids', 'download', 'only_return_identifiers', 'only_return_basic_information', 'include_blurhash', 'create_new_file_ids', 'detailed_url_information', 'hide_service_keys_tags', 'simple', 'file_sort_asc', 'return_hashes', 'return_file_ids', 'include_notes', 'include_services_object', 'notes', 'note_names', 'doublecheck_file_system' }
+CLIENT_API_JSON_PARAMS = { 'basic_permissions', 'tags', 'tags_1', 'tags_2', 'file_ids', 'download', 'only_return_identifiers', 'only_return_basic_information', 'include_blurhash', 'create_new_file_ids', 'detailed_url_information', 'hide_service_keys_tags', 'simple', 'file_sort_asc', 'return_hashes', 'return_file_ids', 'include_notes', 'include_services_object', 'notes', 'note_names', 'doublecheck_file_system', 'return_file_metadata' }
 CLIENT_API_JSON_BYTE_LIST_PARAMS = { 'file_service_keys', 'deleted_file_service_keys', 'hashes' }
 CLIENT_API_JSON_BYTE_DICT_PARAMS = { 'service_keys_to_tags', 'service_keys_to_actions_to_tags', 'service_keys_to_additional_tags' }
 
@@ -2683,9 +2683,14 @@ class HydrusResourceClientAPIRestrictedGetFilesSearchFiles( HydrusResourceClient
         
         tag_context = ClientSearch.TagContext( service_key = tag_service_key )
         predicates = ParseClientAPISearchPredicates( request )
+
+        return_hashes = request.parsed_request_args.GetValue( 'return_hashes', bool, default_value = False )
+        return_file_ids = request.parsed_request_args.GetValue( 'return_file_ids', bool, default_value = True )
+        return_file_metadata = request.parsed_request_args.GetValue( 'return_file_metadata', bool, default_value = False )
         
-        return_hashes = False
-        return_file_ids = True
+        if return_file_metadata:
+            return_hashes = False
+            return_file_ids = False
         
         if len( predicates ) == 0:
             
@@ -2718,15 +2723,6 @@ class HydrusResourceClientAPIRestrictedGetFilesSearchFiles( HydrusResourceClient
             
             # newest first
             sort_by = ClientMedia.MediaSort( sort_type = ( 'system', file_sort_type ), sort_order = sort_order )
-            
-            if 'return_hashes' in request.parsed_request_args:
-                
-                return_hashes = request.parsed_request_args.GetValue( 'return_hashes', bool )
-                
-            
-            if 'return_file_ids' in request.parsed_request_args:
-                
-                return_file_ids = request.parsed_request_args.GetValue( 'return_file_ids', bool )
                 
             
             job_key = ClientThreading.JobKey( cancellable = True )
@@ -2736,7 +2732,7 @@ class HydrusResourceClientAPIRestrictedGetFilesSearchFiles( HydrusResourceClient
             hash_ids = HG.client_controller.Read( 'file_query_ids', file_search_context, job_key = job_key, sort_by = sort_by, apply_implicit_limit = False )
             
         
-        request.client_api_permissions.SetLastSearchResults( hash_ids )
+        request.client_api_permissions.SetLastSearchResults( hash_ids ) 
         
         body_dict = {}
         
@@ -2751,7 +2747,42 @@ class HydrusResourceClientAPIRestrictedGetFilesSearchFiles( HydrusResourceClient
         if return_file_ids:
             
             body_dict[ 'file_ids' ] = list( hash_ids )
+
+
+        if return_file_metadata:
+
+            include_blurhash = request.parsed_request_args.GetValue( 'include_blurhash', bool, default_value = False )
+
+            file_info_managers = HG.client_controller.Read( 'file_info_managers_from_ids', hash_ids, sorted = True, blurhash = include_blurhash )
+
+            metadata = []
+
+            for file_info_manager in file_info_managers:
+
+                metadata_row = {
+                    'file_id' : file_info_manager.hash_id,
+                    'hash' : file_info_manager.hash.hex(),
+                    'size' : file_info_manager.size,
+                    'mime' : HC.mime_mimetype_string_lookup[ file_info_manager.mime ],
+                    'filetype_human' : HC.mime_string_lookup[ file_info_manager.mime ],
+                    'filetype_enum' : file_info_manager.mime,
+                    'ext' : HC.mime_ext_lookup[ file_info_manager.mime ],
+                    'width' : file_info_manager.width,
+                    'height' : file_info_manager.height,
+                    'duration' : file_info_manager.duration,
+                    'num_frames' : file_info_manager.num_frames,
+                    'num_words' : file_info_manager.num_words,
+                    'has_audio' : file_info_manager.has_audio
+                }
+
+                if include_blurhash:
+                    
+                    metadata_row[ 'blurhash' ] = file_info_manager.blurhash
+
+                metadata.append( metadata_row )
             
+            body_dict[ 'metadata' ] = metadata
+                
         
         body = Dumps( body_dict, request.preferred_mime )
         
