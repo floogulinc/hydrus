@@ -735,6 +735,7 @@ APPLICATION_PROCREATE = 69
 IMAGE_QOI = 70
 APPLICATION_EPUB = 71
 APPLICATION_DJVU = 72
+IMAGE_JXL = 73
 APPLICATION_OCTET_STREAM = 100
 APPLICATION_UNKNOWN = 101
 
@@ -766,6 +767,7 @@ SEARCHABLE_MIMES = {
     IMAGE_AVIF,
     IMAGE_AVIF_SEQUENCE,
     IMAGE_BMP,
+    IMAGE_JXL,
     APPLICATION_FLASH,
     VIDEO_AVI,
     VIDEO_FLV,
@@ -817,6 +819,7 @@ IMAGES = [
     IMAGE_GIF,
     IMAGE_WEBP,
     IMAGE_AVIF,
+    IMAGE_JXL,
     IMAGE_BMP,
     IMAGE_HEIC,
     IMAGE_HEIF,
@@ -965,6 +968,7 @@ mime_enum_lookup = {
     'image/heic-sequence' : IMAGE_HEIC_SEQUENCE,
     'image/avif' : IMAGE_AVIF,
     'image/avif-sequence' : IMAGE_AVIF_SEQUENCE,
+    'image/jxl' : IMAGE_JXL,
     'image/vnd.microsoft.icon' : IMAGE_ICON,
     'image' : IMAGES,
     'application/x-shockwave-flash' : APPLICATION_FLASH,
@@ -1041,6 +1045,7 @@ mime_string_lookup = {
     IMAGE_HEIC_SEQUENCE: 'heic sequence',
     IMAGE_AVIF: 'avif',
     IMAGE_AVIF_SEQUENCE: 'avif sequence',
+    IMAGE_JXL : 'jxl',
     APPLICATION_FLASH : 'flash',
     APPLICATION_OCTET_STREAM : 'application/octet-stream',
     APPLICATION_YAML : 'yaml',
@@ -1120,6 +1125,7 @@ mime_mimetype_string_lookup = {
     IMAGE_HEIC_SEQUENCE: 'image/heic-sequence',
     IMAGE_AVIF: 'image/avif',
     IMAGE_AVIF_SEQUENCE: 'image/avif-sequence',
+    IMAGE_JXL: 'image/jxl',
     APPLICATION_FLASH : 'application/x-shockwave-flash',
     APPLICATION_OCTET_STREAM : 'application/octet-stream',
     APPLICATION_YAML : 'application/x-yaml',
@@ -1198,6 +1204,7 @@ mime_ext_lookup = {
     IMAGE_HEIC_SEQUENCE: '.heics',
     IMAGE_AVIF: '.avif',
     IMAGE_AVIF_SEQUENCE: '.avifs',
+    IMAGE_JXL : '.jxl',
     APPLICATION_FLASH : '.swf',
     APPLICATION_OCTET_STREAM : '.bin',
     APPLICATION_YAML : '.yaml',
