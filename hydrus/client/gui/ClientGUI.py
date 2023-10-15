@@ -742,6 +742,7 @@ class FrameGUI( CAC.ApplicationCommandProcessorMixin, ClientGUITopLevelWindows.M
         library_version_lines.append( 'openssl: {}'.format( ssl.OPENSSL_VERSION ) )
         library_version_lines.append( 'Pillow: {}'.format( PIL.__version__ ) )
         library_version_lines.append( 'Pillow-HEIF: {}'.format( HydrusImageHandling.HEIF_OK ) )
+        library_version_lines.append( 'pillow-jxl-plugin: {}'.format( HydrusImageHandling.JXL_OK ) )
         
         if QtInit.WE_ARE_QT5:
             
