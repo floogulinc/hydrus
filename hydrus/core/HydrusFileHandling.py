@@ -12,6 +12,7 @@ from hydrus.core import HydrusExceptions
 from hydrus.core import HydrusFlashHandling
 from hydrus.core import HydrusKritaHandling
 from hydrus.core import HydrusProcreateHandling
+from hydrus.core import HydrusUgoiraHandling
 from hydrus.core import HydrusPaths
 from hydrus.core import HydrusSerialisable
 from hydrus.core import HydrusSVGHandling
@@ -207,7 +208,22 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
             
             HydrusTemp.CleanUpTempPath( os_file_handle, temp_path )
             
+
+    elif mime == HC.ANIMATION_UGOIRA:
+
+        try:
+
+            thumbnail_numpy = HydrusUgoiraHandling.GenerateThumbnailNumPyFromUgoiraPath( path, target_resolution, clip_rect = clip_rect )
         
+        except Exception as e:
+            
+            HydrusData.Print( 'Problem generating thumbnail for "{}":'.format( path ) )
+            HydrusData.PrintException( e )
+            
+            thumb_path = os.path.join( HC.STATIC_DIR, 'hydrus.png' )
+            
+            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+
     elif mime in HC.IMAGES or mime == HC.ANIMATION_GIF: # not apng atm
         
         # TODO: it would be nice to have gif and apng generating their thumb x frames in, like with videos. maybe we should add animation thumb fetcher to hydrusanimationhandling
@@ -437,6 +453,10 @@ def GetFileInfo( path, mime = None, ok_to_look_for_hydrus_updates = False ):
         
         ( ( width, height ), duration, num_frames, has_audio ) = HydrusVideoHandling.GetFFMPEGVideoProperties( path )
         
+    elif mime == HC.ANIMATION_UGOIRA:
+
+        ( ( width, height ), duration, num_frames ) = HydrusUgoiraHandling.GetUgoiraProperties( path )
+
     elif mime in HC.ANIMATIONS:
         
         ( ( width, height ), duration, num_frames ) = HydrusAnimationHandling.GetAnimationProperties( path, mime )
@@ -632,6 +652,10 @@ def GetMime( path, ok_to_look_for_hydrus_updates = False ):
                 if HydrusProcreateHandling.ZipLooksLikeProcreate( path ):
                     
                     return HC.APPLICATION_PROCREATE
+                
+                if HydrusUgoiraHandling.ZipLooksLikeUgoira( path ):
+
+                    return HC.ANIMATION_UGOIRA
                     
                 
                 return HC.APPLICATION_ZIP

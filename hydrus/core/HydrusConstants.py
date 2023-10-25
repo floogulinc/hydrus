@@ -735,6 +735,7 @@ APPLICATION_PROCREATE = 69
 IMAGE_QOI = 70
 APPLICATION_EPUB = 71
 APPLICATION_DJVU = 72
+ANIMATION_UGOIRA = 73
 APPLICATION_OCTET_STREAM = 100
 APPLICATION_UNKNOWN = 101
 
@@ -766,6 +767,7 @@ SEARCHABLE_MIMES = {
     IMAGE_AVIF,
     IMAGE_AVIF_SEQUENCE,
     IMAGE_BMP,
+    ANIMATION_UGOIRA,
     APPLICATION_FLASH,
     VIDEO_AVI,
     VIDEO_FLV,
@@ -830,7 +832,8 @@ ANIMATIONS = [
     ANIMATION_APNG,
     IMAGE_AVIF_SEQUENCE,
     IMAGE_HEIC_SEQUENCE,
-    IMAGE_HEIF_SEQUENCE
+    IMAGE_HEIF_SEQUENCE,
+    ANIMATION_UGOIRA
 ]
 
 HEIF_TYPE_SEQUENCES = [
@@ -1041,6 +1044,7 @@ mime_string_lookup = {
     IMAGE_HEIC_SEQUENCE: 'heic sequence',
     IMAGE_AVIF: 'avif',
     IMAGE_AVIF_SEQUENCE: 'avif sequence',
+    ANIMATION_UGOIRA : 'ugoira',
     APPLICATION_FLASH : 'flash',
     APPLICATION_OCTET_STREAM : 'application/octet-stream',
     APPLICATION_YAML : 'yaml',
@@ -1120,6 +1124,7 @@ mime_mimetype_string_lookup = {
     IMAGE_HEIC_SEQUENCE: 'image/heic-sequence',
     IMAGE_AVIF: 'image/avif',
     IMAGE_AVIF_SEQUENCE: 'image/avif-sequence',
+    ANIMATION_UGOIRA : 'application/zip',
     APPLICATION_FLASH : 'application/x-shockwave-flash',
     APPLICATION_OCTET_STREAM : 'application/octet-stream',
     APPLICATION_YAML : 'application/x-yaml',
@@ -1198,6 +1203,7 @@ mime_ext_lookup = {
     IMAGE_HEIC_SEQUENCE: '.heics',
     IMAGE_AVIF: '.avif',
     IMAGE_AVIF_SEQUENCE: '.avifs',
+    ANIMATION_UGOIRA : '.ugoira',
     APPLICATION_FLASH : '.swf',
     APPLICATION_OCTET_STREAM : '.bin',
     APPLICATION_YAML : '.yaml',

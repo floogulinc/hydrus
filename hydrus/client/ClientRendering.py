@@ -15,6 +15,7 @@ from hydrus.core import HydrusGlobals as HG
 from hydrus.core import HydrusVideoHandling
 from hydrus.core.images import HydrusImageColours
 from hydrus.core.images import HydrusImageHandling
+from hydrus.core import HydrusUgoiraHandling
 
 from hydrus.client import ClientFiles
 from hydrus.client import ClientImageHandling
@@ -655,6 +656,14 @@ class RasterContainerVideo( RasterContainer ):
             
             self._renderer = ClientVideoHandling.GIFRenderer( self._path, num_frames_in_video, self._target_resolution )
             
+        elif self._media.GetMime() == HC.ANIMATION_UGOIRA:
+
+            self._durations = HydrusUgoiraHandling.GetFrameDurationsUgoira( self._path )
+
+            self._times_to_play_animation = 1
+
+            self._renderer = HydrusUgoiraHandling.UgoiraRenderer( self._path, num_frames_in_video, self._target_resolution )
+
         else:
             
             if self._media.GetMime() == HC.ANIMATION_APNG:
@@ -1021,7 +1030,7 @@ class RasterContainerVideo( RasterContainer ):
         
         with self._lock:
             
-            return self._media.GetMime() == HC.ANIMATION_GIF
+            return self._media.GetMime() == HC.ANIMATION_GIF or self._media.GetMime() == HC.ANIMATION_UGOIRA
             
         
     
