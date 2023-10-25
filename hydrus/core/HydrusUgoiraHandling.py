@@ -110,6 +110,8 @@ class UgoiraRenderer(object):
         self._next_render_index = 0
 
         self._frame_data = GetUgoiraFrameData( path )
+        
+        self._zip = HydrusArchiveHandling.GetZipAsPath( path )
 
     def set_position( self, index ):
 
@@ -123,7 +125,9 @@ class UgoiraRenderer(object):
 
         frame_name = self._frame_data[self._next_render_index]['file']
 
-        pil_image = GetUgoiraFramePIL(self._path, frame_name)
+        frame_from_zip = self._zip.joinpath(frame_name).open('rb')
+
+        pil_image = HydrusImageHandling.GeneratePILImage( frame_from_zip )
 
         numpy_image = HydrusImageHandling.GenerateNumPyImageFromPILImage( pil_image )
 
