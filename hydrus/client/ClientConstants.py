@@ -249,6 +249,7 @@ for mime in HC.SEARCHABLE_MIMES:
         media_viewer_capabilities[ mime ] = no_support
         
     
+media_viewer_capabilities[ HC.ANIMATION_UGOIRA ] = ( static_media_actions, True, True )
 
 media_viewer_capabilities[ HC.APPLICATION_HYDRUS_UPDATE_CONTENT ] = no_support
 media_viewer_capabilities[ HC.APPLICATION_HYDRUS_UPDATE_DEFINITIONS ] = no_support
