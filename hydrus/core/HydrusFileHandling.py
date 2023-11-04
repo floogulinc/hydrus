@@ -43,14 +43,14 @@ except Exception as e:
     
 
 
-def GenerateThumbnailBytes( path, target_resolution, mime, duration, num_frames, clip_rect = None, percentage_in = 35 ):
+def GenerateThumbnailBytes( path, target_resolution, mime, duration, num_frames, percentage_in = 35 ):
     
-    thumbnail_numpy = GenerateThumbnailNumPy(path, target_resolution, mime, duration, num_frames, clip_rect, percentage_in )
+    thumbnail_numpy = GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames, percentage_in = percentage_in )
 
     return HydrusImageHandling.GenerateThumbnailBytesFromNumPy( thumbnail_numpy )
     
 
-def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames, clip_rect = None, percentage_in = 35 ):
+def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames, percentage_in = 35 ):
     
     if target_resolution == ( 0, 0 ):
         
@@ -61,7 +61,7 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
         
         try:
             
-            thumbnail_numpy = HydrusPSDHandling.GenerateThumbnailNumPyFromPSDPath( path, target_resolution, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusPSDHandling.GenerateThumbnailNumPyFromPSDPath( path, target_resolution )
             
         except Exception as e:
             
@@ -69,19 +69,19 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
             HydrusData.PrintException( e )
             HydrusData.Print( 'Attempting ffmpeg PSD thumbnail fallback' )
             
+            ( os_file_handle, temp_path ) = HydrusTemp.GetTempPath( suffix = '.png' )
+            
             try:
-                
-                ( os_file_handle, temp_path ) = HydrusTemp.GetTempPath( suffix = '.png' )
                 
                 HydrusVideoHandling.RenderImageToImagePath( path, temp_path )
                 
-                thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( temp_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+                thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( temp_path, target_resolution, HC.IMAGE_PNG )
                 
             except Exception as e: 
                 
                 thumb_path = os.path.join( HC.STATIC_DIR, 'psd.png' )
                 
-                thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+                thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG )
                 
             finally:
                 
@@ -97,13 +97,13 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
             
             HydrusClipHandling.ExtractDBPNGToPath( path, temp_path )
             
-            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( temp_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( temp_path, target_resolution, HC.IMAGE_PNG )
             
         except:
             
             thumb_path = os.path.join( HC.STATIC_DIR, 'clip.png' )
             
-            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG )
             
         finally:
             
@@ -114,7 +114,7 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
         
         try:
             
-            thumbnail_numpy = HydrusKritaHandling.GenerateThumbnailNumPyFromKraPath( path, target_resolution, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusKritaHandling.GenerateThumbnailNumPyFromKraPath( path, target_resolution )
             
         except Exception as e:
             
@@ -126,7 +126,7 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
             
             thumb_path = os.path.join( HC.STATIC_DIR, 'krita.png' )
             
-            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG )
             
         
     elif mime == HC.APPLICATION_PROCREATE:
@@ -137,13 +137,13 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
             
             HydrusProcreateHandling.ExtractZippedThumbnailToPath( path, temp_path )
             
-            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( temp_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( temp_path, target_resolution, HC.IMAGE_PNG )
             
         except Exception as e:
             
             thumb_path = os.path.join( HC.STATIC_DIR, 'procreate.png' )
             
-            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG )
             
         finally:
             
@@ -154,7 +154,7 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
         
         try:
             
-            thumbnail_numpy = HydrusSVGHandling.GenerateThumbnailNumPyFromSVGPath( path, target_resolution, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusSVGHandling.GenerateThumbnailNumPyFromSVGPath( path, target_resolution )
             
         except Exception as e:
             
@@ -166,14 +166,14 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
             
             thumb_path = os.path.join( HC.STATIC_DIR, 'svg.png' )
             
-            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG )
             
         
     elif mime == HC.APPLICATION_PDF: 
         
         try:
             
-            thumbnail_numpy = HydrusPDFHandling.GenerateThumbnailNumPyFromPDFPath( path, target_resolution, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusPDFHandling.GenerateThumbnailNumPyFromPDFPath( path, target_resolution )
             
         except Exception as e:
             
@@ -185,7 +185,7 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
             
             thumb_path = os.path.join( HC.STATIC_DIR, 'pdf.png' )
             
-            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG )
             
         
     elif mime == HC.APPLICATION_FLASH:
@@ -196,13 +196,13 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
             
             HydrusFlashHandling.RenderPageToFile( path, temp_path, 1 )
             
-            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( temp_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( temp_path, target_resolution, HC.IMAGE_PNG )
             
         except:
             
             thumb_path = os.path.join( HC.STATIC_DIR, 'flash.png' )
             
-            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG )
             
         finally:
             
@@ -230,7 +230,7 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
         
         try:
             
-            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( path, target_resolution, mime, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( path, target_resolution, mime )
             
         except Exception as e:
             
@@ -239,7 +239,7 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
             
             thumb_path = os.path.join( HC.STATIC_DIR, 'hydrus.png' )
             
-            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG )
             
         
     else:
@@ -250,7 +250,7 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
         
         try:
             
-            renderer = HydrusVideoHandling.VideoRendererFFMPEG( path, mime, duration, num_frames, target_resolution, clip_rect = clip_rect, start_pos = desired_thumb_frame )
+            renderer = HydrusVideoHandling.VideoRendererFFMPEG( path, mime, duration, num_frames, target_resolution, start_pos = desired_thumb_frame )
             
             numpy_image = renderer.read_frame()
             
@@ -273,7 +273,7 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
             
             try:
                 
-                renderer = HydrusVideoHandling.VideoRendererFFMPEG( path, mime, duration, num_frames, target_resolution, clip_rect = clip_rect )
+                renderer = HydrusVideoHandling.VideoRendererFFMPEG( path, mime, duration, num_frames, target_resolution )
                 
                 numpy_image = renderer.read_frame()
                 
@@ -290,7 +290,7 @@ def GenerateThumbnailNumPy( path, target_resolution, mime, duration, num_frames,
             
             thumb_path = os.path.join( HC.STATIC_DIR, 'hydrus.png' )
             
-            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG, clip_rect = clip_rect )
+            thumbnail_numpy = HydrusImageHandling.GenerateThumbnailNumPyFromStaticImagePath( thumb_path, target_resolution, HC.IMAGE_PNG )
             
         else:
             
