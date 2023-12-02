@@ -66,6 +66,21 @@ def GetZipAsPath( path_to_zip, path_in_zip="" ):
     return zipfile.Path( path_to_zip, at=path_in_zip )
     
 
+def IsOpenableZip( path_to_zip ):
+    
+    with zipfile.ZipFile( path_to_zip ) as zip_handle:
+        
+        try:
+            
+            return zip_handle.testzip() is None
+            
+        except:
+            
+            return False
+            
+        
+    
+
 def ZipLooksLikeCBZ( path_to_zip ):
     
     # TODO: we should probably wangle this away from 'zip' and towards 'archive', but it is fine as a first step
