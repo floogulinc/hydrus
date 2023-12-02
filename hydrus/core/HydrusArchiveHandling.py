@@ -68,16 +68,15 @@ def GetZipAsPath( path_to_zip, path_in_zip="" ):
 
 def IsOpenableZip( path_to_zip ):
     
-    with zipfile.ZipFile( path_to_zip ) as zip_handle:
+    try:
         
-        try:
+        with zipfile.ZipFile( path_to_zip ) as zip_handle:
             
             return zip_handle.testzip() is None
             
-        except:
-            
-            return False
-            
+    except:
+        
+        return False
         
     
 
