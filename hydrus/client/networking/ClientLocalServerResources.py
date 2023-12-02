@@ -2362,6 +2362,53 @@ class HydrusResourceClientAPIRestrictedAddTagsGetTagSiblingsParents( HydrusResou
         return response_context
         
     
+class HydrusResourceClientAPIRestrictedAddTagsGetAllSiblings( HydrusResourceClientAPIRestrictedAddTags ):
+    
+    def _threadDoGETJob( self, request: HydrusServerRequest.HydrusRequest ):
+        
+        tag_service_key = ParseTagServiceKey( request )
+        
+        statuses_to_pairs = HG.client_controller.Read( 'tag_siblings', tag_service_key )
+        
+        statuses_to_pairs_list = { status: list( pairs ) for status, pairs in statuses_to_pairs.items()}
+        
+        ideal_siblings = HG.client_controller.Read( 'tag_siblings_all_ideals', tag_service_key )
+        
+        body_dict = {
+            'statuses_to_pairs' : statuses_to_pairs_list,
+            'ideal_siblings' : ideal_siblings
+        }
+        
+        body = Dumps( body_dict, request.preferred_mime )
+        
+        response_context = HydrusServerResources.ResponseContext( 200, mime = request.preferred_mime, body = body )
+        
+        return response_context
+    
+
+class HydrusResourceClientAPIRestrictedAddTagsGetAllParents( HydrusResourceClientAPIRestrictedAddTags ):
+    
+    def _threadDoGETJob( self, request: HydrusServerRequest.HydrusRequest ):
+        
+        tag_service_key = ParseTagServiceKey( request )
+        
+        statuses_to_pairs = HG.client_controller.Read( 'tag_parents', tag_service_key )
+        
+        statuses_to_pairs_list = { status: list( pairs ) for status, pairs in statuses_to_pairs.items()}
+        
+        print(statuses_to_pairs)
+        
+        body_dict = {
+            'statuses_to_pairs' : statuses_to_pairs_list,
+        }
+        
+        body = Dumps( body_dict, request.preferred_mime )
+        
+        response_context = HydrusServerResources.ResponseContext( 200, mime = request.preferred_mime, body = body )
+        
+        return response_context
+    
+
 
 class HydrusResourceClientAPIRestrictedAddTagsCleanTags( HydrusResourceClientAPIRestrictedAddTags ):
     
