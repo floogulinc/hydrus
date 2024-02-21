@@ -49,7 +49,9 @@ jobs:
           echo "version_short=${GITHUB_REF##*/v}" >> $GITHUB_ENV
       -
         name: Write version to Info.plist
-        run: plutil -replace CFBundleShortVersionString -string "${{ env.version_short }}" install/static/build_files/macos/Info.plist
+        run: |
+          cd $GITHUB_WORKSPACE
+          plutil -replace CFBundleShortVersionString -string "${{ env.version_short }}" static/build_files/macos/Info.plist
       -
         name: Build Hydrus
         run: |
