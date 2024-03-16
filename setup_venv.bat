@@ -138,22 +138,8 @@ ECHO Most people want "n".
 ECHO If you are Python 3.7 or earlier, choose "o".
 SET /P pillow="Do you want (o)ld pillow or (n)ew pillow? "
 
-IF "%pillow%" == "o" goto :question_opencv
-IF "%pillow%" == "n" goto :question_opencv
-goto :parse_fail
-
-:question_opencv
-
-ECHO --------
-ECHO OpenCV - Images
-ECHO:
-ECHO Most people want "n".
-ECHO If it doesn't work, fall back to "o". Python ^>=3.11 might need "t".
-SET /P opencv="Do you want (o)ld OpenCV, (n)ew OpenCV, or (t)est OpenCV? "
-
-IF "%opencv%" == "o" goto :create
-IF "%opencv%" == "n" goto :create
-IF "%opencv%" == "t" goto :create
+IF "%pillow%" == "o" goto :create
+IF "%pillow%" == "n" goto :create
 goto :parse_fail
 
 :create
@@ -196,7 +182,6 @@ IF "%install_type%" == "d" (
     python -m pip install PyQt6-Charts PyQt6
     python -m pip install -r static\requirements\advanced\requirements_pillow_new.txt
     python -m pip install -r static\requirements\advanced\requirements_mpv_test.txt
-    python -m pip install -r static\requirements\advanced\requirements_opencv_test.txt
     python -m pip install -r static\requirements\hydev\requirements_windows_build.txt
 
 )
@@ -245,10 +230,6 @@ IF "%install_type%" == "a" (
     IF "%mpv%" == "o" python -m pip install -r static\requirements\advanced\requirements_mpv_old.txt
     IF "%mpv%" == "n" python -m pip install -r static\requirements\advanced\requirements_mpv_new.txt
     IF "%mpv%" == "t" python -m pip install -r static\requirements\advanced\requirements_mpv_test.txt
-
-    IF "%opencv%" == "o" python -m pip install -r static\requirements\advanced\requirements_opencv_old.txt
-    IF "%opencv%" == "n" python -m pip install -r static\requirements\advanced\requirements_opencv_new.txt
-    IF "%opencv%" == "t" python -m pip install -r static\requirements\advanced\requirements_opencv_test.txt
 
 )
 

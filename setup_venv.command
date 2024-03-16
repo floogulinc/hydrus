@@ -143,24 +143,6 @@ elif [ "$install_type" = "a" ]; then
         exit 1
     fi
 
-    echo "--------"
-    echo "OpenCV - Images"
-    echo
-    echo "Most people want \"n\"."
-    echo "If it doesn't work, fall back to \"o\". Python >=3.11 might need \"t\"."
-    echo "Do you want (o)ld OpenCV, (n)ew OpenCV, or (t)est OpenCV? "
-    read -r opencv
-    if [ "$opencv" = "o" ]; then
-        :
-    elif [ "$opencv" = "n" ]; then
-        :
-    elif [ "$opencv" = "t" ]; then
-        :
-    else
-        echo "Sorry, did not understand that input!"
-        popd || exit 1
-        exit 1
-    fi
 else
     echo "Sorry, did not understand that input!"
     popd || exit 1
@@ -236,13 +218,6 @@ elif [ "$install_type" = "a" ]; then
         python -m pip install -r static/requirements/advanced/requirements_pillow_new.txt
     fi
 
-    if [ "$opencv" = "o" ]; then
-        python -m pip install -r static/requirements/advanced/requirements_opencv_old.txt
-    elif [ "$opencv" = "n" ]; then
-        python -m pip install -r static/requirements/advanced/requirements_opencv_new.txt
-    elif [ "$opencv" = "t" ]; then
-        python -m pip install -r static/requirements/advanced/requirements_opencv_test.txt
-    fi
 fi
 
 python -m pip install -r static/requirements/advanced/requirements/requirements_macos.txt
