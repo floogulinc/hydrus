@@ -1,5 +1,4 @@
 import collections
-import cv2
 import numpy
 import os
 import struct
@@ -29,13 +28,6 @@ from hydrus.client.gui import ClientGUIFunctions
 # read that many pixels after that, you got the payload
 # it should be zlib compressed these days and is most likely a dumped hydrus serialisable object, which is a json guy with a whole complicated loading system. utf-8 it into a string and you are half way there :^)
 
-if cv2.__version__.startswith( '2' ):
-    
-    IMREAD_UNCHANGED = cv2.CV_LOAD_IMAGE_UNCHANGED
-    
-else:
-    
-    IMREAD_UNCHANGED = cv2.IMREAD_UNCHANGED
     
 
 def CreateTopImage( width, title, payload_description, text ):
@@ -123,7 +115,11 @@ def CreateTopImage( width, title, payload_description, text ):
     
     top_image_rgb = ClientGUIFunctions.ConvertQtImageToNumPy( top_qt_image )
     
-    top_image = cv2.cvtColor( top_image_rgb, cv2.COLOR_RGB2GRAY )
+    top_image_rgb_pil = HydrusImageHandling.GeneratePILImageFromNumPyImage( top_image_rgb )
+    
+    top_image_pil = top_image_rgb_pil.convert('L')
+    
+    top_image = HydrusImageHandling.GenerateNumPyImageFromPILImage( top_image_pil, strip_useless_alpha = False )
     
     top_height_header = struct.pack( '!H', top_height )
     
@@ -160,14 +156,11 @@ def DumpToPNG( width, payload_bytes, title, payload_description, text, path ):
     
     finished_image = numpy.concatenate( ( top_image, payload_image ) )
     
-    # this is to deal with unicode paths, which cv2 can't handle
-    ( os_file_handle, temp_path ) = HydrusTemp.GetTempPath( suffix = '.png' )
-    
     try:
         
-        cv2.imwrite( temp_path, finished_image, [ cv2.IMWRITE_PNG_COMPRESSION, 9 ] )
+        pil_image = HydrusImageHandling.GeneratePILImageFromNumPyImage( finished_image )
         
-        HydrusPaths.MirrorFile( temp_path, path )
+        pil_image.save( path )
         
     except Exception as e:
         
@@ -246,47 +239,22 @@ def LoadFromQtImage( qt_image: QG.QImage ):
 
 def LoadFromPNG( path ):
     
-    # this is to deal with unicode paths, which cv2 can't handle
-    ( os_file_handle, temp_path ) = HydrusTemp.GetTempPath()
-    
     try:
-        
-        HydrusPaths.MirrorFile( path, temp_path )
-        
-        try:
             
-            # unchanged because we want exact byte data, no conversions or other gubbins
-            numpy_image = cv2.imread( temp_path, flags = IMREAD_UNCHANGED )
-            
-            if numpy_image is None:
-                
-                raise Exception()
-                
-            
-        except Exception as e:
-            
-            try:
-                
-                # dequantize = False because we don't want to convert our greyscale bytes to RGB
-                
-                pil_image = HydrusImageHandling.GeneratePILImage( temp_path, dequantize = False )
-                
-                # leave strip_useless_alpha = True in here just to catch the very odd LA situation
-                
-                numpy_image = HydrusImageHandling.GenerateNumPyImageFromPILImage( pil_image )
-                
-            except Exception as e:
-                
-                HydrusData.ShowException( e )
-                
-                raise Exception( '"{}" did not appear to be a valid image!'.format( path ) ) from e
-                
-            
+        # dequantize = False because we don't want to convert our greyscale bytes to RGB
         
-    finally:
+        pil_image = HydrusImageHandling.GeneratePILImage( path, dequantize = False )
         
-        HydrusTemp.CleanUpTempPath( os_file_handle, temp_path )
+        # leave strip_useless_alpha = True in here just to catch the very odd LA situation
         
+        numpy_image = HydrusImageHandling.GenerateNumPyImageFromPILImage( pil_image )
+        
+    except Exception as e:
+        
+        HydrusData.ShowException( e )
+        
+        raise Exception( '"{}" did not appear to be a valid image!'.format( path ) ) from e
+    
     
     return LoadFromNumPyImage( numpy_image )
     

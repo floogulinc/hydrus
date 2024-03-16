@@ -525,7 +525,7 @@ def ResizeNumPyImage( numpy_image: numpy.array, target_resolution:  typing.Tuple
     
     pil_image = GeneratePILImageFromNumPyImage( numpy_image )
         
-    pil_image = ResizePILImage( target_resolution, interpolation )
+    pil_image = ResizePILImage( pil_image, target_resolution, interpolation )
     
     return GenerateNumPyImageFromPILImage( pil_image, strip_useless_alpha = False )
     

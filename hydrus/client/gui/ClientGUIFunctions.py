@@ -159,6 +159,7 @@ def ConvertQtImageToNumPy( qt_image: QG.QImage, strip_useless_alpha = True ):
     
     return numpy_image
     
+    
 def ConvertTextToPixels( window, char_dimensions ) -> typing.Tuple[ int, int ]:
     
     ( char_cols, char_rows ) = char_dimensions
