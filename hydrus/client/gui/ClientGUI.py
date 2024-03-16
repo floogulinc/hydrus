@@ -9,7 +9,6 @@ import threading
 import time
 import traceback
 
-import cv2
 import PIL
 import sqlite3
 
@@ -744,7 +743,6 @@ class FrameGUI( CAC.ApplicationCommandProcessorMixin, ClientGUITopLevelWindows.M
             HydrusData.ShowText( ClientGUIMPV.mpv_failed_reason )
             
         
-        library_version_lines.append( 'OpenCV: {}'.format( cv2.__version__ ) )
         library_version_lines.append( 'openssl: {}'.format( ssl.OPENSSL_VERSION ) )
         library_version_lines.append( 'Pillow: {}'.format( PIL.__version__ ) )
         library_version_lines.append( 'Pillow-HEIF: {}'.format( HydrusImageHandling.HEIF_OK ) )

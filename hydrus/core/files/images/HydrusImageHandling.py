@@ -1,6 +1,5 @@
 from hydrus.core.files.images import HydrusImageInit # right up top
 
-import cv2
 import hashlib
 import io
 import numpy
@@ -9,6 +8,7 @@ import warnings
 
 from PIL import ImageFile as PILImageFile
 from PIL import Image as PILImage
+from PIL.Image import Resampling as PILResampling
 
 try:
     
@@ -55,27 +55,6 @@ def EnableLoadTruncatedImages():
 OLD_PIL_MAX_IMAGE_PIXELS = PILImage.MAX_IMAGE_PIXELS
 PILImage.MAX_IMAGE_PIXELS = None # this turns off decomp check entirely, wew
 
-if cv2.__version__.startswith( '2' ):
-    
-    CV_IMREAD_FLAGS_PNG = cv2.CV_LOAD_IMAGE_UNCHANGED
-    CV_IMREAD_FLAGS_JPEG = CV_IMREAD_FLAGS_PNG
-    CV_IMREAD_FLAGS_WEIRD = CV_IMREAD_FLAGS_PNG
-    
-    CV_JPEG_THUMBNAIL_ENCODE_PARAMS = []
-    CV_PNG_THUMBNAIL_ENCODE_PARAMS = []
-    
-else:
-    
-    # allows alpha channel
-    CV_IMREAD_FLAGS_PNG = cv2.IMREAD_UNCHANGED
-    # this preserves colour info but does EXIF reorientation and flipping
-    CV_IMREAD_FLAGS_JPEG = cv2.IMREAD_ANYDEPTH | cv2.IMREAD_ANYCOLOR
-    # this seems to allow weirdass tiffs to load as non greyscale, although the LAB conversion 'whitepoint' or whatever can be wrong
-    CV_IMREAD_FLAGS_WEIRD = CV_IMREAD_FLAGS_PNG
-    
-    CV_JPEG_THUMBNAIL_ENCODE_PARAMS = [ cv2.IMWRITE_JPEG_QUALITY, 92 ]
-    CV_PNG_THUMBNAIL_ENCODE_PARAMS = [ cv2.IMWRITE_PNG_COMPRESSION, 9 ]
-    
 
 PIL_ONLY_MIMETYPES = { HC.ANIMATION_GIF, HC.IMAGE_ICON, HC.IMAGE_WEBP, HC.IMAGE_QOI, HC.IMAGE_BMP }.union( HC.PIL_HEIF_MIMES )
 
@@ -155,85 +134,21 @@ def GenerateNumPyImage( path, mime, force_pil = False ) -> numpy.array:
         
         return GenerateNumPyImageFromPILImage( pil_image )
         
-    
-    if mime in PIL_ONLY_MIMETYPES:
-        
-        force_pil = True
         
     
-    if not force_pil:
-        
-        pil_image = HydrusImageOpening.RawOpenPILImage( path )
-        
-        if pil_image.mode == 'LAB':
-            
-            force_pil = True
-            
-        
-        if HydrusImageMetadata.HasICCProfile( pil_image ):
-            
-            if HG.media_load_report_mode:
-                
-                HydrusData.ShowText( 'Image has ICC, so switching to PIL' )
-                
-            
-            force_pil = True
-            
-        
-    
-    if force_pil:
-        
-        if HG.media_load_report_mode:
+    if HG.media_load_report_mode:
             
             HydrusData.ShowText( 'Loading with PIL' )
-            
         
-        pil_image = GeneratePILImage( path )
+    
+    pil_image = GeneratePILImage( path )
+    
+    numpy_image = GenerateNumPyImageFromPILImage( pil_image )
         
-        numpy_image = GenerateNumPyImageFromPILImage( pil_image )
-        
-    else:
-        
-        if HG.media_load_report_mode:
-            
-            HydrusData.ShowText( 'Loading with OpenCV' )
-            
-        
-        if mime in ( HC.IMAGE_JPEG, HC.IMAGE_TIFF ):
-            
-            flags = CV_IMREAD_FLAGS_JPEG
-            
-        elif mime == HC.IMAGE_PNG:
-            
-            flags = CV_IMREAD_FLAGS_PNG
-            
-        else:
-            
-            flags = CV_IMREAD_FLAGS_WEIRD
-            
-        
-        numpy_image = cv2.imread( path, flags = flags )
-        
-        if numpy_image is None: # doesn't support some random stuff
-            
-            if HG.media_load_report_mode:
-                
-                HydrusData.ShowText( 'OpenCV Failed, loading with PIL' )
-                
-            
-            pil_image = GeneratePILImage( path )
-            
-            numpy_image = GenerateNumPyImageFromPILImage( pil_image )
-            
-        else:
-            
-            numpy_image = HydrusImageNormalisation.DequantizeFreshlyLoadedNumPyImage( numpy_image )
-            
-            numpy_image = HydrusImageNormalisation.StripOutAnyUselessAlphaChannel( numpy_image )
-            
         
     
     return numpy_image
+    
     
 def GenerateNumPyImageFromPILImage( pil_image: PILImage.Image, strip_useless_alpha = True ) -> numpy.array:
     
@@ -343,56 +258,9 @@ def GenerateThumbnailNumPyFromStaticImagePath( path, target_resolution, mime ):
 
 def GenerateThumbnailBytesFromNumPy( numpy_image ) -> bytes:
     
-    if len( numpy_image.shape ) == 2:
-        
-        depth = 3
-        
-        convert = cv2.COLOR_GRAY2RGB
-        
-    else:
-        
-        ( im_height, im_width, depth ) = numpy_image.shape
-        
-        numpy_image = HydrusImageNormalisation.StripOutAnyUselessAlphaChannel( numpy_image )
-        
-        if depth == 4:
-            
-            convert = cv2.COLOR_RGBA2BGRA
-            
-        else:
-            
-            convert = cv2.COLOR_RGB2BGR
-            
-        
+    pil_image = GeneratePILImageFromNumPyImage( numpy_image )
     
-    numpy_image = cv2.cvtColor( numpy_image, convert )
-    
-    ( im_height, im_width, depth ) = numpy_image.shape
-    
-    if depth == 4:
-        
-        ext = '.png'
-        
-        params = CV_PNG_THUMBNAIL_ENCODE_PARAMS
-        
-    else:
-        
-        ext = '.jpg'
-        
-        params = CV_JPEG_THUMBNAIL_ENCODE_PARAMS
-        
-    
-    ( result_success, result_byte_array ) = cv2.imencode( ext, numpy_image, params )
-    
-    if result_success:
-        
-        thumbnail_bytes = result_byte_array.tostring()
-        
-        return thumbnail_bytes
-        
-    else:
-        
-        raise HydrusExceptions.CantRenderWithCVException( 'Thumb failed to encode!' )
+    return GenerateThumbnailBytesFromPIL( pil_image )
         
     
 
@@ -418,32 +286,26 @@ def GenerateThumbnailBytesFromPIL( pil_image: PILImage.Image ) -> bytes:
     return thumbnail_bytes
     
 
+def GeneratePNGBytesPIL( pil_image ) -> bytes:
+    
+    f = io.BytesIO()
+    
+    pil_image.save( f, 'PNG' )
+    
+    f.seek( 0 )
+    
+    png_bytes = f.read()
+    
+    f.close()
+    
+    return png_bytes
+    
+
 def GeneratePNGBytesNumPy( numpy_image ) -> bytes:
     
-    ( im_height, im_width, depth ) = numpy_image.shape
-
-    ext = '.png'
-
-    if depth == 4:
-        
-        convert = cv2.COLOR_RGBA2BGRA
-        
-    else:
-        
-        convert = cv2.COLOR_RGB2BGR
-        
+    pil_image = GeneratePILImageFromNumPyImage( numpy_image )
     
-    numpy_image = cv2.cvtColor( numpy_image, convert )
-    
-    ( result_success, result_byte_array ) = cv2.imencode( ext, numpy_image )
-    
-    if result_success:
-        
-        return result_byte_array.tostring()
-        
-    else:
-        
-        raise HydrusExceptions.CantRenderWithCVException( 'Image failed to encode!' )
+    return GeneratePNGBytesPIL( pil_image )
         
     
 
@@ -638,7 +500,7 @@ def IsDecompressionBomb( path ) -> bool:
     return False
     
 
-def ResizeNumPyImage( numpy_image: numpy.array, target_resolution, forced_interpolation = None ) -> numpy.array:
+def ResizeNumPyImage( numpy_image: numpy.array, target_resolution:  typing.Tuple[ int, int ], forced_interpolation: PILResampling = None ) -> numpy.array:
     
     ( target_width, target_height ) = target_resolution
     ( image_width, image_height ) = GetResolutionNumPy( numpy_image )
@@ -649,11 +511,11 @@ def ResizeNumPyImage( numpy_image: numpy.array, target_resolution, forced_interp
         
     elif target_width > image_height or target_height > image_width:
         
-        interpolation = cv2.INTER_LANCZOS4
+        interpolation = PILResampling.LANCZOS
         
     else:
         
-        interpolation = cv2.INTER_AREA
+        interpolation = PILResampling.LANCZOS
         
     
     if forced_interpolation is not None:
@@ -661,5 +523,19 @@ def ResizeNumPyImage( numpy_image: numpy.array, target_resolution, forced_interp
         interpolation = forced_interpolation
         
     
-    return cv2.resize( numpy_image, ( target_width, target_height ), interpolation = interpolation )
+    pil_image = GeneratePILImageFromNumPyImage( numpy_image )
+        
+    pil_image = ResizePILImage( target_resolution, interpolation )
     
+    return GenerateNumPyImageFromPILImage( pil_image, strip_useless_alpha = False )
+    
+
+def ResizePILImage(pil_image: PILImage.Image, target_resolution:  typing.Tuple[ int, int ], forced_interpolation: PILResampling = None) -> PILImage.Image:
+    
+    if target_resolution == pil_image.size:
+        
+        return pil_image
+    
+    interpolation = forced_interpolation if not None else PILResampling.LANCZOS
+    
+    return pil_image.resize( target_resolution, interpolation )

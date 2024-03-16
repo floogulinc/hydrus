@@ -2,8 +2,6 @@ import io
 
 import numpy
 
-import cv2
-
 from PIL import Image as PILImage
 from PIL import ImageCms as PILImageCms
 

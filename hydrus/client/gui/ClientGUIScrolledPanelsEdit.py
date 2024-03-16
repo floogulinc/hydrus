@@ -3372,7 +3372,7 @@ class EditMediaViewOptionsPanel( ClientGUIScrolledPanels.EditPanel ):
         
         self._scale_down_quality = ClientGUICommon.BetterChoice( self )
         
-        for zoom in ( CC.ZOOM_NEAREST, CC.ZOOM_LINEAR, CC.ZOOM_AREA ):
+        for zoom in ( CC.ZOOM_NEAREST, CC.ZOOM_LINEAR, CC.ZOOM_LANCZOS4 ):
             
             self._scale_down_quality.addItem( CC.zoom_string_lookup[ zoom], zoom )
             

@@ -1,7 +1,6 @@
 import numpy
 import numpy.core.multiarray # important this comes before cv!
 
-import cv2
 from PIL import Image as PILImage
 import warnings
 

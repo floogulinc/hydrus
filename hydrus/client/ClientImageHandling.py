@@ -4,7 +4,8 @@ import math
 import numpy
 import numpy.core.multiarray # important this comes before cv!
 
-import cv2
+from PIL.Image import Resampling as PILResampling
+from PIL import Image as PILImage
 
 from hydrus.core import HydrusData
 from hydrus.core import HydrusGlobals as HG
@@ -13,13 +14,20 @@ from hydrus.core.files.images import HydrusImageHandling
 from hydrus.client import ClientConstants as CC
 from hydrus.client import ClientGlobals as CG
 
-cv_interpolation_enum_lookup = {}
+pil_interpolation_enum_lookup_downscale = {
+    CC.ZOOM_NEAREST: PILResampling.NEAREST,
+    CC.ZOOM_LINEAR: PILResampling.BILINEAR,
+    CC.ZOOM_CUBIC: PILResampling.BICUBIC,
+    CC.ZOOM_LANCZOS4: PILResampling.LANCZOS
+    #CC.ZOOM_AREA: 
+}
 
-cv_interpolation_enum_lookup[ CC.ZOOM_NEAREST ] = cv2.INTER_NEAREST
-cv_interpolation_enum_lookup[ CC.ZOOM_LINEAR ] = cv2.INTER_LINEAR
-cv_interpolation_enum_lookup[ CC.ZOOM_AREA ] = cv2.INTER_AREA
-cv_interpolation_enum_lookup[ CC.ZOOM_CUBIC ] = cv2.INTER_CUBIC
-cv_interpolation_enum_lookup[ CC.ZOOM_LANCZOS4 ] = cv2.INTER_LANCZOS4
+pil_interpolation_enum_lookup_upscale = {
+    CC.ZOOM_NEAREST: PILResampling.BOX,
+    CC.ZOOM_LINEAR: PILResampling.BILINEAR,
+    CC.ZOOM_CUBIC: PILResampling.BICUBIC,
+    CC.ZOOM_LANCZOS4: PILResampling.LANCZOS
+}
 
 def DiscardBlankPerceptualHashes( perceptual_hashes ):
     
@@ -54,7 +62,7 @@ def GenerateShapePerceptualHashes( path, mime ):
         
     
 
-def PILDCT( greyscale_numpy_image: numpy.array ):
+def NumpyDCT( greyscale_numpy_image: numpy.array ):
     # this emulates cv2.dct and was figured out by prkc. there is some OpenCV secret magic that differs from 'typical' DCT
     # it should be a complete drop-in other than tiny floating-point calc differences 3.9204849e+02 vs 3.92048486e+02
     # experimentally, I ran the final phash on 500 different files and every single one was exactly the same!
@@ -80,6 +88,8 @@ def GenerateShapePerceptualHashesNumPy( numpy_image ):
     
     ( y, x, depth ) = numpy_image.shape
     
+    pil_image = HydrusImageHandling.GeneratePILImageFromNumPyImage( numpy_img )
+    
     if depth == 4:
         
         # doing this on 10000x10000 pngs eats ram like mad
@@ -89,18 +99,28 @@ def GenerateShapePerceptualHashesNumPy( numpy_image ):
         new_x = min( 256, x )
         new_y = min( 256, y )
         
-        numpy_image = cv2.resize( numpy_image, ( new_x, new_y ), interpolation = cv2.INTER_AREA )
+        pil_image = HydrusImageHandling.GeneratePILImageFromNumPyImage( numpy_image )
+        
+        pil_image = HydrusImageHandling.ResizePILImage( pil_image, ( new_x, new_y ), forced_interpolation = PILResampling.LANCZOS )
+        
+        numpy_image = HydrusImageHandling.GenerateNumPyImageFromPILImage(pil_image, strip_useless_alpha = False)
         
         ( y, x, depth ) = numpy_image.shape
         
         # create weight and transform numpy_image to greyscale
         
+        # TODO maybe just use PIL?
+        #background = Image.new("RGB", png.size, (255, 255, 255))
+        #background.paste(png, mask=png.split()[3]) # 3 is the alpha channel
+        
         numpy_alpha = numpy_image[ :, :, 3 ]
         
         numpy_image_rgb = numpy_image[ :, :, :3 ]
         
-        numpy_image_gray_bare = cv2.cvtColor( numpy_image_rgb, cv2.COLOR_RGB2GRAY )
+        pil_image_gray_bare = pil_image.convert('L')
         
+        #numpy_image_gray_bare = cv2.cvtColor( numpy_image_rgb, cv2.COLOR_RGB2GRAY )
+        numpy_image_gray_bare = HydrusImageHandling.GenerateNumPyImageFromPILImage(pil_image_gray_bare, strip_useless_alpha = False)
         # create a white greyscale canvas
         
         white = numpy.full( ( y, x ), 255.0 )
@@ -120,8 +140,11 @@ def GenerateShapePerceptualHashesNumPy( numpy_image ):
         
     else:
         
-        # this single step is nice and fast, so we won't scale to 256x256 beforehand
-        numpy_image_gray = cv2.cvtColor( numpy_image, cv2.COLOR_RGB2GRAY )
+        pil_image = HydrusImageHandling.GeneratePILImageFromNumPyImage( numpy_image )
+        
+        pil_image_gray = pil_image.convert('L')
+        
+        numpy_image_gray = HydrusImageHandling.GenerateNumPyImageFromPILImage(pil_image_gray, strip_useless_alpha = False)
         
     
     if HG.phash_generation_report_mode:
@@ -129,7 +152,7 @@ def GenerateShapePerceptualHashesNumPy( numpy_image ):
         HydrusData.ShowText( 'phash generation: grey image shape: {}'.format( numpy_image_gray.shape ) )
         
     
-    numpy_image_tiny = cv2.resize( numpy_image_gray, ( 32, 32 ), interpolation = cv2.INTER_AREA )
+    numpy_image_tiny = HydrusImageHandling.ResizeNumPyImage( numpy_image_gray, ( 32, 32 ) )
     
     if HG.phash_generation_report_mode:
         
@@ -146,7 +169,7 @@ def GenerateShapePerceptualHashesNumPy( numpy_image ):
         HydrusData.ShowText( 'phash generation: generating dct' )
         
     
-    dct = PILDCT( numpy_image_tiny_float )
+    dct = NumpyDCT( numpy_image_tiny_float )
     
     # take top left 8x8 of dct
     
@@ -253,13 +276,17 @@ def ResizeNumPyImageForMediaViewer( mime, numpy_image, target_resolution ):
         
         if target_width > image_width or target_height > image_height:
             
-            interpolation = cv_interpolation_enum_lookup[ scale_up_quality ]
+            interpolation = pil_interpolation_enum_lookup_upscale[ scale_up_quality ]
             
         else:
             
-            interpolation = cv_interpolation_enum_lookup[ scale_down_quality ]
+            interpolation = pil_interpolation_enum_lookup_downscale[ scale_down_quality ]
             
         
-        return cv2.resize( numpy_image, ( target_width, target_height ), interpolation = interpolation )
+        pil_image = HydrusImageHandling.GeneratePILImageFromNumPyImage( numpy_image )
+        
+        pil_image = pil_image.resize( (target_width, target_height), interpolation )
+        
+        return HydrusImageHandling.GenerateNumPyImageFromPILImage( pil_image, strip_useless_alpha = False )
         
     
