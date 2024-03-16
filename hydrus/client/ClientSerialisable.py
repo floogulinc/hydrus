@@ -120,6 +120,7 @@ def CreateTopImage( width, title, payload_description, text ):
     top_image_pil = top_image_rgb_pil.convert('L')
     
     top_image = HydrusImageHandling.GenerateNumPyImageFromPILImage( top_image_pil, strip_useless_alpha = False )
+    top_image = top_image.copy()
     
     top_height_header = struct.pack( '!H', top_height )
     
@@ -167,10 +168,6 @@ def DumpToPNG( width, payload_bytes, title, payload_description, text, path ):
         HydrusData.ShowException( e )
         
         raise Exception( 'Could not save the png!' ) from e
-        
-    finally:
-        
-        HydrusTemp.CleanUpTempPath( os_file_handle, temp_path )
         
     
 def GetPayloadBytesAndLength( payload_obj ):
