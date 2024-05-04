@@ -125,6 +125,46 @@ class App( QW.QApplication ):
         
         self.aboutToQuit.connect( self.EventAboutToQuit )
         
+        HydrusData.Print( 'screens: ' )
+        
+        for screen in self.screens():
+            
+            HydrusData.Print( screen )
+            HydrusData.Print( screen.serialNumber() )
+            HydrusData.Print( screen.__hash__() )
+            HydrusData.Print( screen.name() )
+            HydrusData.Print( screen.manufacturer() )
+            HydrusData.Print( screen.model() )
+            HydrusData.Print( screen.geometry() )
+            
+        HydrusData.Print( '-----------------------------------' )
+        
+        primary_screen = self.primaryScreen()
+        
+        HydrusData.Print( 'primary screen:' )
+        
+        HydrusData.Print( primary_screen )
+        HydrusData.Print( primary_screen.serialNumber() )
+        HydrusData.Print( primary_screen.__hash__() )
+        
+        self.primaryScreenChanged.connect( self.PrimaryScreenChanged )
+            
+        self.screenAdded.connect( self.ScreenAdded )
+        
+        
+    def ScreenAdded( self, screen: QG.QScreen ):
+        
+        HydrusData.Print( 'screen added' )
+        HydrusData.Print( screen )
+        HydrusData.Print( screen.serialNumber() )
+        HydrusData.Print( screen.__hash__() )
+        
+    def PrimaryScreenChanged( self, screen: QG.QScreen ):
+        
+        HydrusData.Print( 'primary screen changed' )
+        HydrusData.Print( screen )
+        HydrusData.Print( screen.serialNumber() )
+        HydrusData.Print( screen.__hash__() )
     
     def EventAboutToQuit( self ):
         

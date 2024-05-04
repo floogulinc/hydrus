@@ -32,15 +32,26 @@ def GetSafePosition( position: QC.QPoint, frame_key ):
     
     screen = QW.QApplication.screenAt( test_position )
     
+    HydrusData.Print( 'GetSafePosition' )
+    HydrusData.Print( screen )
+    HydrusData.Print( screen.serialNumber() )
+    HydrusData.Print( screen.__hash__() )
+    
     if screen is None:
         
         try:
             
             first_display = QW.QApplication.screens()[0]
             
+            HydrusData.Print( 'first_display' )
+            HydrusData.Print( first_display )
+            
             rescue_position = first_display.availableGeometry().topLeft() + fuzzy_point
             
             rescue_screen = QW.QApplication.screenAt( rescue_position )
+            
+            HydrusData.Print( 'rescue_screen' )
+            HydrusData.Print( first_display )
             
             if rescue_screen == first_display:
                 
@@ -326,6 +337,9 @@ def SetInitialTLWSizeAndPosition( tlw: QW.QWidget, frame_key ):
             
             screen = ClientGUIFunctions.GetMouseScreen()
             
+            HydrusData.Print( 'GetMouseScreen' )
+            HydrusData.Print( screen )
+            
             if screen is not None:
                 
                 desired_position = screen.availableGeometry().topLeft() + QC.QPoint( CHILD_POSITION_PADDING, CHILD_POSITION_PADDING )
@@ -347,6 +361,9 @@ def SetInitialTLWSizeAndPosition( tlw: QW.QWidget, frame_key ):
             we_care_about_off_screen_messages = False
             
             screen = ClientGUIFunctions.GetMouseScreen()
+            
+            HydrusData.Print( 'GetMouseScreen' )
+            HydrusData.Print( screen )
             
             if screen is not None:
                 
