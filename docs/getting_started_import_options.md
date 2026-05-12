@@ -45,7 +45,7 @@ So, how are these Import Options set up for a particular file import? It would b
 
 The 'global' set of Import Options are the backstop that will be used if nothing else involved has any custom Import Options set. The different layers of import type are placed atop the global set, each more specific than the last, and the top-most layer that has a value for each option type is the one selected for the actual import. It is all arranged in a preference stack, like so:
 
-[![](images/import_options_stack_chart_1.png)](images/import_options_stack_chart_1.png)
+[![](images/import_options_stack_chart.svg#hd-1)](images/import_options_stack_chart.svg#hd-1)
 
 This is the default situation for a local hard drive import page. By default, the 'local hard drive import' type has no custom options. Similarly, while every new import context has a "specific import options" attached that _can_ override the defaults, it starts empty every time. Imagine, though, if you did this (and let's say unchecking the 'exclude deleted' checkbox):
 
@@ -57,7 +57,7 @@ When you apply that, note the button label changes to:
 
 We would now have this situation:
 
-[![](images/import_options_stack_chart_2.png)](images/import_options_stack_chart_2.png)
+[![](images/import_options_stack_chart.svg#hd-2)](images/import_options_stack_chart.svg#hd-2)
 
 We overrode what the global defaults were offering for this import, and this import page will now allow previously deleted files. Every importer has one of these import option buttons, and you can use them for one-time settings for unusual jobs like this.
 
@@ -74,11 +74,11 @@ Here we tell hydrus to treat local hard drive imports differently than the globa
 
 In the screenshot we have set custom 'locations' import options. Any new local hard drive import will now start like this:
 
-[![](images/import_options_stack_chart_3.png)](images/import_options_stack_chart_3.png)
+[![](images/import_options_stack_chart.svg#hd-3)](images/import_options_stack_chart.svg#hd-3)
 
 We could, of course, always change an upcoming local hard drive import to has its own custom Location Import Options, which would then override our new default:
 
-[![](images/import_options_stack_chart_4.png)](images/import_options_stack_chart_4.png)
+[![](images/import_options_stack_chart.svg#hd-4)](images/import_options_stack_chart.svg#hd-4)
 
 Any local import page will first consult its specific settings, then the 'local hard drive import' settings, and then fall back to the globals. You can click 'show stack' on any entry to see what you would be dealing with with an actual importer of that type.
 
@@ -86,7 +86,7 @@ The stack gets more complicated for downloaders. Hydrus now considers the type o
 
 Let's look at subscriptions:
 
-[![](images/import_options_stack_chart_5.png)](images/import_options_stack_chart_5.png)
+[![](images/import_options_stack_chart.svg#sub-1)](images/import_options_stack_chart.svg#sub-1)
 
 If you are a new user, this should be the same default you see, so feel free to check with the options page. What's special?
 
@@ -97,7 +97,7 @@ If you never want to import any content with the tag "goblin", you could set tha
 
 This is a real-world example that an experienced hydrus user might set up:
 
-[![](images/import_options_stack_chart_6.png)](images/import_options_stack_chart_6.png)
+[![](images/import_options_stack_chart.svg#sub-2)](images/import_options_stack_chart.svg#sub-2)
 
 If you really want to, you can make different Tag Import Options for every single site, but I recommend you try and keep things simple. Best to have a simple effective setup for "gallery/post urls" and then add URL Class exceptions as needed.
 
