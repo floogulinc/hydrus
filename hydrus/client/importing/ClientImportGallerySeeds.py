@@ -20,7 +20,7 @@ from hydrus.client.metadata import ClientTags
 from hydrus.client.parsing import ClientParsing
 from hydrus.client.parsing import ClientParsingResults
 
-def ConvertParsedPostsToGallerySeeds( parsed_posts: list[ ClientParsingResults.ParsedPost ], desired_url_types: collections.abc.Collection[ int ], can_generate_more_pages: bool ):
+def ConvertParsedPostsToGallerySeeds( parsed_posts: list[ ClientParsingResults.ParsedPost ], desired_url_types: collections.abc.Collection[ int ], can_generate_more_pages: bool, add_tags = True ):
     
     sub_gallery_seeds = []
     
@@ -38,7 +38,7 @@ def ConvertParsedPostsToGallerySeeds( parsed_posts: list[ ClientParsingResults.P
             
             gallery_seed = GallerySeed( url = url, can_generate_more_pages = can_generate_more_pages )
             
-            gallery_seed.AddParsedPost( parsed_post )
+            gallery_seed.AddParsedPost( parsed_post, add_tags )
             
             sub_gallery_seeds.append( gallery_seed )
             
@@ -285,16 +285,18 @@ class GallerySeed( HydrusSerialisable.SerialisableBase ):
         self._external_filterable_tags.update( tags )
         
     
-    def AddParsedPost( self, parsed_post: ClientParsingResults.ParsedPost ):
+    def AddParsedPost( self, parsed_post: ClientParsingResults.ParsedPost, add_tags: bool = True ):
         
         parsed_request_headers = parsed_post.GetHTTPHeaders()
         
         self.AddRequestHeaders( parsed_request_headers )
         
-        tags = parsed_post.GetTags()
-        
-        self.AddExternalFilterableTags( tags )
-        
+        if add_tags:
+            
+            tags = parsed_post.GetTags()
+            
+            self.AddExternalFilterableTags( tags )
+            
         self._UpdateModified()
         
     
@@ -618,7 +620,7 @@ class GallerySeed( HydrusSerialisable.SerialisableBase ):
                 
                 if self._can_generate_more_pages and can_add_more_gallery_urls:
                     
-                    next_page_gallery_seeds = ConvertParsedPostsToGallerySeeds( parsed_posts, ( HC.URL_TYPE_NEXT, ), self._can_generate_more_pages )
+                    next_page_gallery_seeds = ConvertParsedPostsToGallerySeeds( parsed_posts, ( HC.URL_TYPE_NEXT, ), self._can_generate_more_pages, False )
                     
                     new_next_page_gallery_seeds = [ next_page_gallery_seed for next_page_gallery_seed in next_page_gallery_seeds if next_page_gallery_seed.url not in gallery_urls_seen_before ]
                     
