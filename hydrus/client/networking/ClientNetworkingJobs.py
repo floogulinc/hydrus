@@ -22,7 +22,7 @@ from hydrus.core.processes import HydrusThreading
 from hydrus.client import ClientConstants as CC
 from hydrus.client import ClientGlobals as CG
 from hydrus.client import ClientTime
-from hydrus.client.networking import ClientNetworkingConstants as CNC
+from hydrus.client.networking import ClientNetworkingConstants as CNC, ClientNetworkingCurlCFFI
 from hydrus.client.networking import ClientNetworkingContexts
 from hydrus.client.networking import ClientNetworkingFunctions
 from hydrus.client.networking import ClientNetworkingSessions
@@ -718,7 +718,7 @@ class NetworkJob( object ):
             ncs = list( self._network_contexts )
             
         
-        headers = self.engine.domain_manager.GetHeaders( ncs )
+        headers: dict[ str, str ] = self.engine.domain_manager.GetHeaders( ncs )
         
         with self._lock:
             
@@ -789,7 +789,24 @@ class NetworkJob( object ):
         
         session = self.engine.session_manager.GetSession( snc )
         
-        ClientNetworkingSessions.CleanseHeadersForSession( session, headers )
+        if ClientNetworkingCurlCFFI.SessionIsCurlCFFI( session ): 
+
+            global_headers: dict[str, str] = self.engine.domain_manager.GetHeaders( [ ClientNetworkingContexts.GLOBAL_NETWORK_CONTEXT ] )
+            
+            # assuming this capitalization for now
+            # really, hydrus is incorrectly treating header keys as case-sensitive
+            # which should be fixed in general
+            
+            if 'User-Agent' in global_headers and 'User-Agent' in headers:
+                
+                 # only remove User-Agent if it is the global one
+                
+                if  global_headers[ 'User-Agent' ] == headers[ 'User-Agent' ]:
+                    
+                    del headers[ 'User-Agent' ]
+                    
+                
+            
         
         ( connect_timeout, read_timeout ) = self._GetTimeouts()
         

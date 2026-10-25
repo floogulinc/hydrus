@@ -50,19 +50,6 @@ def AddCookiesToSessionActualCookies( session, list_of_cookies: list[ http.cooki
     EnsureSessionCookiesAreSynced( session, cookies )
     
 
-def CleanseHeadersForSession( ambiguous_session, headers: dict[ str, str ] ):
-    
-    if ClientNetworkingCurlCFFI.SessionIsCurlCFFI( ambiguous_session ):
-        
-        lower_to_actual = { key.lower() : key for key in headers.keys() }
-        
-        if 'user-agent' in lower_to_actual:
-            
-            del headers[ lower_to_actual[ 'user-agent' ] ]
-            
-        
-    
-
 def ClearExpiredCookies( ambiguous_session ):
     """
     This is not super important since expired cookies are not sent, but it is useful as cleanup and login expiry detection, so we do it regularly.
