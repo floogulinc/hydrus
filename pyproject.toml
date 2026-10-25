@@ -39,6 +39,7 @@ dependencies = [
     "requests==2.34.2",
     "pyside6==6.10.3",
     "qtpy==2.4.3",
+    "curl-cffi<=0.16.3",
     "pyobjc-core<=12.1 ; sys_platform == 'darwin'",
     "pyobjc-framework-cocoa<=12.1 ; sys_platform == 'darwin'",
     "pyobjc-framework-quartz<=12.1 ; sys_platform == 'darwin'",
