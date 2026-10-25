@@ -38,3 +38,5 @@ mkdocs-material==9.7.7
 
 PyWin32<=311
 pefile
+
+curl-cffi<=0.16.3
